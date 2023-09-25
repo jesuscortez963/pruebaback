@@ -1,4 +1,4 @@
-CREATE PROCEDURE Productos_Editar
+CREATE PROCEDURE sp_EditarProducto
     @id INT,
     @nombre_producto VARCHAR(50) = NULL,
     @descripcion_producto VARCHAR(200) = NULL,

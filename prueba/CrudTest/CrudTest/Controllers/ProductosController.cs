@@ -11,7 +11,7 @@ namespace CrudTest.Controllers
     [ApiController]
     public class ProductosController : ControllerBase
     {
-        private readonly string _connectionString = "Server=localhost\\SQLEXPRESS;Database=test;Trusted_Connection=True;Encrypt=False;TrustServerCertificate=false;";
+        private readonly string _connectionString = "Server=DESKTOP-J7SFMOH\\SQLEXPRESS;Database=test;Trusted_Connection=True;Encrypt=False;TrustServerCertificate=false;";
 
         [HttpPost("InsertarProducto")]
         public IActionResult InsertarProducto(ProductoDTO productoDTO)
@@ -30,6 +30,10 @@ namespace CrudTest.Controllers
                     cmd.Parameters.Add(new SqlParameter("@fechas_registro", DateTime.Now));
 
                     con.Open();
+
+                    Response.Headers.Add("Access-Control-Allow-Origin", "http://localhost:4200");
+                    Response.Headers.Add("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
+                    Response.Headers.Add("Access-Control-Allow-Headers", "Content-Type, Accept, Authorization");
                     try
                     {
                         cmd.ExecuteNonQuery();
@@ -54,6 +58,10 @@ namespace CrudTest.Controllers
                     cmd.Parameters.Add(new SqlParameter("@id", id));
 
                     con.Open();
+
+                    Response.Headers.Add("Access-Control-Allow-Origin", "http://localhost:4200");
+                    Response.Headers.Add("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
+                    Response.Headers.Add("Access-Control-Allow-Headers", "Content-Type, Accept, Authorization");
                     try
                     {
                         cmd.ExecuteNonQuery();
@@ -84,6 +92,10 @@ namespace CrudTest.Controllers
                     cmd.Parameters.Add(new SqlParameter("@tipo_producto_id", productoDTO.TipoProductoId));
 
                     con.Open();
+
+                    Response.Headers.Add("Access-Control-Allow-Origin", "http://localhost:4200");
+                    Response.Headers.Add("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
+                    Response.Headers.Add("Access-Control-Allow-Headers", "Content-Type, Accept, Authorization");
                     try
                     {
                         cmd.ExecuteNonQuery();
@@ -109,6 +121,10 @@ namespace CrudTest.Controllers
 
                     con.Open();
 
+                    Response.Headers.Add("Access-Control-Allow-Origin", "http://localhost:4200");
+                    Response.Headers.Add("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
+                    Response.Headers.Add("Access-Control-Allow-Headers", "Content-Type, Accept, Authorization");
+
                     using (SqlDataReader reader = cmd.ExecuteReader())
                     {
                         if (reader.Read())
@@ -129,6 +145,53 @@ namespace CrudTest.Controllers
                         {
                             return NotFound(new { message = "Producto no encontrado" });
                         }
+                    }
+                }
+            }
+        }
+
+        [HttpGet("ConsultarTodosProductos")]
+        public IActionResult ConsultarTodosProductos()
+        {
+            using (SqlConnection con = new SqlConnection(_connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("sp_ConsultarTodoProductos", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+
+                    con.Open();
+
+                    Response.Headers.Add("Access-Control-Allow-Origin", "http://localhost:4200");
+                    Response.Headers.Add("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
+                    Response.Headers.Add("Access-Control-Allow-Headers", "Content-Type, Accept, Authorization");
+
+                    List<ProductoDTO> productos = new List<ProductoDTO>();
+
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            var producto = new ProductoDTO
+                            {
+                                Id = Convert.ToInt32(reader["id"]),
+                                NombreProducto = reader["nombre_producto"].ToString(),
+                                DescripcionProducto = reader["descripcion_producto"].ToString(),
+                                Precio = Convert.ToDecimal(reader["precio"]),
+                                Existencia = Convert.ToDecimal(reader["existencia"]),
+                                TipoProductoId = Convert.ToInt32(reader["tipo_producto_id"]),
+                            };
+
+                            productos.Add(producto);
+                        }
+                    }
+
+                    if (productos.Count > 0)
+                    {
+                        return Ok(productos);
+                    }
+                    else
+                    {
+                        return NotFound(new { message = "Productos no encontrados" });
                     }
                 }
             }
